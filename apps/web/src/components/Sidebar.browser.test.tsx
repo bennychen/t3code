@@ -4,6 +4,7 @@ import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environ
 import * as shelfHooks from "../state/olderSettledShelf";
 import { createWorkspaceFocusController, workspaceAreaProps } from "../lib/workspaceFocus";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
+import { asLaunchingThread } from "@t3tools/client-runtime/state/thread-inbox";
 import {
   DEFAULT_CLIENT_SETTINGS,
   EnvironmentId,
@@ -14,7 +15,7 @@ import {
 } from "@t3tools/contracts";
 import { isMacPlatform } from "@t3tools/shared/keybindings";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { userEvent } from "vite-plus/test/browser";
+import { page, userEvent } from "vite-plus/test/browser";
 
 import { act, fakeTimers, render } from "../../test/render";
 import { openCommandPalette } from "../commandPaletteBus";
@@ -24,6 +25,7 @@ import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useNowMinute } from "../hooks/useNowMinute";
 import { __setClientSettingsForTests, getClientSettings } from "../hooks/useSettings";
 import { useThreadRouteTarget } from "../hooks/useThreadRouteTarget";
+import * as entities from "../state/entities";
 import { useProjects, useServerConfigs, useQuietThreadShells } from "../state/entities";
 import { useConnectedEnvironmentIds, usePrimaryEnvironmentId } from "../state/environments";
 import { readEnvironmentScope, useEnvironmentScope } from "../state/session";
@@ -263,6 +265,51 @@ function threadShell(projectId: ProjectId, index: number): EnvironmentThreadShel
     title: `Thread ${index}`,
   });
 }
+
+it("opens the session board from the sidebar with Working and collapsed Settled sessions", async () => {
+  const previousSettings = getClientSettings();
+  using cleanup = new DisposableStack();
+  cleanup.defer(() => __setClientSettingsForTests(previousSettings));
+  __setClientSettingsForTests({ ...DEFAULT_CLIENT_SETTINGS, sidebarWorkingShelfEnabled: false });
+  const activeProject = project("board-project");
+  const otherProject = project("other-project");
+  const active = threadShell(activeProject.id, 1);
+  const running = asLaunchingThread(threadShell(activeProject.id, 2));
+  const settled = { ...threadShell(otherProject.id, 3), settledOverride: "settled" as const };
+  using _projects = vi
+    .spyOn(entities, "useProjects")
+    .mockReturnValue([activeProject, otherProject]);
+  using _threads = vi
+    .spyOn(entities, "useQuietThreadShells")
+    .mockReturnValue([active, running, settled]);
+  using _configs = vi
+    .spyOn(entities, "useServerConfigs")
+    .mockReturnValue(
+      new Map([
+        [
+          activeProject.environmentId,
+          { scratchWorkspaceRoot: null } as unknown as EnvironmentServerConfig,
+        ],
+      ]),
+    );
+  await using screen = await render(
+    <SidebarProvider>
+      <Sidebar routeReveal={{ observedKey: null, pendingKey: null }} />
+    </SidebarProvider>,
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Session board" }));
+  const dialog = page.getByRole("dialog", { name: "Session board" });
+  for (const [name, thread] of [
+    ["Active", active],
+    ["Working", running],
+    ["Settled", settled],
+  ] as const) {
+    await expect
+      .element(dialog.getByRole("region", { name }).getByRole("button", { name: thread.title }))
+      .toBeVisible();
+  }
+});
 
 describe("sidebar render isolation", () => {
   // regression: #33100 Cmd+J re-rendered every sidebar row, which took hundreds of ms with many threads

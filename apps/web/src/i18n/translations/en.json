@@ -13027,5 +13027,18 @@
       "v": "v"
     },
     " more in Linked items"
-  ]
+  ],
+  "c0e7ff45e3d9fe86": "Active",
+  "3ef41ae7b123f1e9": "Working",
+  "c9c3151864a7a277": "Settled",
+  "13e6f2309e418404": "Settle",
+  "386e5eda914fc502": "Session board",
+  "c5f33e42e5147620": "Move sessions between Active and Settled. Working updates as agents run.",
+  "0ff3944ea6166138": "No sessions",
+  "b7c2e2d4a8591814": "Settle {title}",
+  "aefe90ae1f7bd44e": "Return {title} to Active",
+  "07d4a932ecbb9718": "Return to Active",
+  "38c3ecc7c23d6f71": "Loading older sessions…",
+  "23b9f11186070d2e": "Retry loading older sessions",
+  "7502641c4c22e83f": "Show older sessions"
 }

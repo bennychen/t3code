@@ -260,6 +260,7 @@ import {
 import { SidebarContent, SidebarGroup, useSidebar } from "./ui/sidebar";
 import { SidebarChromeFooter, SidebarChromeHeader } from "./sidebar/SidebarChrome";
 import { SidebarHeaderIconButton, SidebarThreadHeader } from "./sidebar/SidebarThreadHeader";
+import { SidebarSessionBoard, type SessionBoardCard } from "./sidebar/SidebarSessionBoard";
 import { TooltipScrollDismissArea } from "./ui/tooltip";
 import {
   composerDraftHasUserContent,
@@ -439,6 +440,7 @@ function useSidebarThreads(input: {
   readonly delegatedUnderParent: ReadonlySet<string>;
   readonly routeRowThreadKey: string | null;
   readonly departingThreadKey: string | null;
+  readonly sessionBoardOpen: boolean;
   // Set in boring mode: the project groups to fold active threads into, in order.
   readonly folderGroups: readonly SidebarProjectSnapshot[] | null;
   // Keeps folders with no active threads, so a project the user filtered to or pinned can start one.
@@ -454,6 +456,7 @@ function useSidebarThreads(input: {
     delegatedUnderParent,
     routeRowThreadKey,
     departingThreadKey,
+    sessionBoardOpen,
     folderGroups,
     keepEmptyFolders: keepEmpty,
   } = input;
@@ -513,7 +516,7 @@ function useSidebarThreads(input: {
   // Older settled threads load in pages; the shelf lists them only as far as they are loaded.
   const olderSettledShelf = useOlderSettledShelf({
     scopes: olderSettledScopes([...serverConfigs.keys()], scopedProjectKeys),
-    expanded: settledShelfExpanded,
+    expanded: settledShelfExpanded || sessionBoardOpen,
     visibleCount: settledVisibleCount,
   });
   const listedSettledThreads = settledThreads.filter(olderSettledShelf.isListed);
@@ -613,6 +616,7 @@ function useSidebarThreads(input: {
       setProjectExpanded(keys, !resolveProjectExpanded(projectExpandedById, keys));
     },
     renderedSettledThreads,
+    visibleSettledThreads,
     visibleSnoozedThreads,
     visibleWorkingThreads,
     orderedThreadKeys: orderedThreads.map(threadShellKey),
@@ -943,6 +947,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const delegatedUnderParent = useDelegatedUnderParent();
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
+  const [sessionBoardOpen, setSessionBoardOpen] = useState(false);
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const confirmThreadDelete = useClientSettings((s) => s.confirmThreadDelete);
   const confirmThreadArchive = useClientSettings((s) => s.confirmThreadArchive);
@@ -1357,6 +1362,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     projectFolders,
     toggleProjectFolder,
     renderedSettledThreads,
+    visibleSettledThreads,
     visibleSnoozedThreads,
     visibleWorkingThreads,
     orderedThreadKeys,
@@ -1378,6 +1384,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     delegatedUnderParent,
     routeRowThreadKey,
     departingThreadKey,
+    sessionBoardOpen,
     folderGroups: boringSidebarEnabled
       ? scopedProjectGroups.length === 0
         ? // An archived project keeps a folder for its active threads, below the rest.
@@ -2986,7 +2993,13 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- subscribes to window keydown for thread navigation shortcuts using the current thread list
   useEffect(() => {
     const onWindowKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.repeat || isCommandPaletteOpen() || isModelPickerOpen()) {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        sessionBoardOpen ||
+        isCommandPaletteOpen() ||
+        isModelPickerOpen()
+      ) {
         return;
       }
       const command = resolveShortcutCommand(event, keybindings, {
@@ -3030,6 +3043,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     orderedRowKeys,
     routeRowKey,
     routeThreadRef,
+    sessionBoardOpen,
     threadByKey,
   ]);
 
@@ -3084,6 +3098,31 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       ? shortcutLabelForCommand(keybindings, "chat.newLocal")
       : undefined);
   const newThreadInProjectShortcutLabel = shortcutLabelForCommand(keybindings, "chat.newLocal");
+  const sessionBoardCards: SessionBoardCard[] = sessionBoardOpen
+    ? (
+        [
+          ["active", pinnedThreads],
+          ["active", activeThreads],
+          ["working", workingThreads],
+          ["settled", visibleSettledThreads],
+        ] as const
+      ).flatMap(([section, threads]) =>
+        threads.map((thread): SessionBoardCard => {
+          const id = threadShellKey(thread);
+          const working = section === "working" || isThreadWorking(thread);
+          const status = section === "settled" ? "settled" : working ? "working" : "active";
+          return {
+            id,
+            title: thread.title,
+            projectName:
+              projectDisplayNameByKey.get(`${thread.environmentId}:${thread.projectId}`) ?? null,
+            environmentName: environmentLabelById.get(thread.environmentId) ?? null,
+            status,
+            canMove: !working && draggableThreadKeys.has(id),
+          };
+        }),
+      )
+    : [];
   return (
     <SidebarFolderDrop>
       <SidebarChromeHeader isElectron={isElectron} />
@@ -3317,6 +3356,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                   </ComboboxPopup>
                 </Combobox>
               }
+              onOpenSessionBoard={() => setSessionBoardOpen(true)}
               onNewThread={handleNewThreadClick}
               newThreadDisabled={projects.length === 0}
               newThreadShortcutLabel={newThreadShortcutLabel}
@@ -3803,6 +3843,36 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         </SidebarGroup>
       </SidebarContent>
       <SidebarChromeFooter />
+      <SidebarSessionBoard
+        open={sessionBoardOpen}
+        onOpenChange={setSessionBoardOpen}
+        cards={sessionBoardCards}
+        onOpenSession={(id) => {
+          const threadRef = parseScopedThreadKey(id);
+          if (threadRef === null) return;
+          setSessionBoardOpen(false);
+          void navigateToThread(threadRef);
+        }}
+        onMoveSession={(id, status) => {
+          if (!sessionBoardCards.some((card) => card.id === id && card.canMove)) return;
+          const threadRef = parseScopedThreadKey(id);
+          if (threadRef === null) return;
+          if (status === "settled") attemptSettle(threadRef);
+          else attemptUnsettle(threadRef);
+        }}
+        olderSettled={
+          hiddenSettledCount > 0
+            ? {
+                loading: olderSettledShelf.loading,
+                failed: olderSettledShelf.failed,
+                onShowMore: () => {
+                  olderSettledShelf.retry();
+                  showMoreSettled();
+                },
+              }
+            : undefined
+        }
+      />
     </SidebarFolderDrop>
   );
 }

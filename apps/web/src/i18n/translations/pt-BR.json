@@ -13018,5 +13018,18 @@
       "v": "v"
     },
     " mais em Itens vinculados"
-  ]
+  ],
+  "c0e7ff45e3d9fe86": "Ativas",
+  "3ef41ae7b123f1e9": "Trabalhando",
+  "c9c3151864a7a277": "Concluídas",
+  "13e6f2309e418404": "Concluir",
+  "386e5eda914fc502": "Quadro de sessões",
+  "c5f33e42e5147620": "Mova sessões entre Ativas e Concluídas. A coluna Trabalhando acompanha a execução dos agentes.",
+  "0ff3944ea6166138": "Nenhuma sessão",
+  "b7c2e2d4a8591814": "Concluir {title}",
+  "aefe90ae1f7bd44e": "Mover {title} de volta para Ativas",
+  "07d4a932ecbb9718": "Voltar para Ativas",
+  "38c3ecc7c23d6f71": "Carregando sessões mais antigas…",
+  "23b9f11186070d2e": "Tentar carregar sessões mais antigas novamente",
+  "7502641c4c22e83f": "Mostrar sessões mais antigas"
 }
