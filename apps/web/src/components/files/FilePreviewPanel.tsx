@@ -356,7 +356,7 @@ export function WorkspaceBrowserPreview(props: {
       pdf={pdf}
       threadRef={props.threadRef}
       pdfActions={
-        <WorkspacePdfSaveAction
+        <WorkspaceFileSaveAction
           environmentId={props.environmentId}
           resource={resource}
           name={props.title}
@@ -366,7 +366,7 @@ export function WorkspaceBrowserPreview(props: {
   );
 }
 
-function WorkspacePdfSaveAction(props: {
+function WorkspaceFileSaveAction(props: {
   readonly environmentId: EnvironmentId;
   readonly resource: AssetResource;
   readonly name: string;
@@ -1443,6 +1443,13 @@ export default function FilePreviewPanel({
     !isDocument &&
     !renderMermaid &&
     file.data?.truncated === true;
+  const canSaveTextFile =
+    previewPath !== null &&
+    file.data !== null &&
+    !isMedia &&
+    !isDocument &&
+    !isPdf &&
+    !showsLargeText;
   const copyLargeText = useRef<(() => Promise<string>) | null>(null);
   const { copyToClipboard, isCopied } = useCopyToClipboard({
     target: namedClipboardTarget(previewPath ?? ""),
@@ -1684,6 +1691,14 @@ export default function FilePreviewPanel({
             >
               {isCopied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
             </FileSurfaceAction>
+          ) : null}
+          {canSaveTextFile && absolutePath ? (
+            <WorkspaceFileSaveAction
+              key={`${environmentId}:${threadRef.threadId}:${absolutePath}`}
+              environmentId={environmentId}
+              resource={workspaceFileDownloadResource(threadRef, absolutePath, draft ? cwd : null)}
+              name={absolutePath}
+            />
           ) : null}
           {showsLargeText && absolutePath && relativePath ? (
             <LargeFileActions
@@ -1969,7 +1984,7 @@ export default function FilePreviewPanel({
 }
 
 // A draft has no thread yet, so its download is scoped to the draft's workspace instead.
-function largeFileResource(
+function workspaceFileDownloadResource(
   threadRef: ScopedThreadRef,
   absolutePath: string,
   draftCwd: string | null,
@@ -2005,7 +2020,7 @@ function LargeFileActions(props: {
   const [saving, setSaving] = useState(false);
   const refreshAssetUrl = useAssetUrlRefresh(
     props.environmentId,
-    largeFileResource(props.threadRef, props.absolutePath, props.draftCwd),
+    workspaceFileDownloadResource(props.threadRef, props.absolutePath, props.draftCwd),
   );
   const showError = (cause: unknown) => {
     toastManager.add({
@@ -2075,7 +2090,11 @@ export function WorkspaceLargeTextPreview(props: {
   revealRequestId: number;
   wordWrap: boolean;
 }) {
-  const resource = largeFileResource(props.threadRef, props.absolutePath, props.draftCwd);
+  const resource = workspaceFileDownloadResource(
+    props.threadRef,
+    props.absolutePath,
+    props.draftCwd,
+  );
   const gt = useGT();
   const [revision, setRevision] = useState(0);
   const showError = (cause: unknown) => {
