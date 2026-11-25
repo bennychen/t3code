@@ -12970,5 +12970,18 @@
   "201490988858b511": "retirada por {by}",
   "99451a5d2d40440f": "Retirada por {by}.",
   "3ee30a50b70fffab": "Retirada por {by}: {reason}",
-  "92e129bf413a1220": "retirada"
+  "92e129bf413a1220": "retirada",
+  "c0e7ff45e3d9fe86": "Activos",
+  "3ef41ae7b123f1e9": "Trabajando",
+  "c9c3151864a7a277": "Resueltos",
+  "13e6f2309e418404": "Resolver",
+  "386e5eda914fc502": "Tablero de sesiones",
+  "c5f33e42e5147620": "Mueve sesiones entre Activos y Resueltos. La columna Trabajando se actualiza mientras se ejecutan los agentes.",
+  "0ff3944ea6166138": "No hay sesiones",
+  "b7c2e2d4a8591814": "Resolver {title}",
+  "aefe90ae1f7bd44e": "Volver a poner {title} en Activos",
+  "07d4a932ecbb9718": "Volver a Activos",
+  "38c3ecc7c23d6f71": "Cargando sesiones anteriores…",
+  "23b9f11186070d2e": "Volver a cargar sesiones anteriores",
+  "7502641c4c22e83f": "Mostrar sesiones anteriores"
 }

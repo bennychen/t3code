@@ -12982,5 +12982,18 @@
   "201490988858b511": "återkallad av {by}",
   "99451a5d2d40440f": "Återkallad av {by}.",
   "3ee30a50b70fffab": "Återkallad av {by}: {reason}",
-  "92e129bf413a1220": "återkallad"
+  "92e129bf413a1220": "återkallad",
+  "c0e7ff45e3d9fe86": "Aktiva",
+  "3ef41ae7b123f1e9": "Arbetar",
+  "c9c3151864a7a277": "Klara",
+  "13e6f2309e418404": "Markera som klar",
+  "386e5eda914fc502": "Sessionstavla",
+  "c5f33e42e5147620": "Flytta sessioner mellan Aktiva och Klara. Kolumnen Arbetar uppdateras när agenterna körs.",
+  "0ff3944ea6166138": "Inga sessioner",
+  "b7c2e2d4a8591814": "Markera {title} som klar",
+  "aefe90ae1f7bd44e": "Flytta tillbaka {title} till Aktiva",
+  "07d4a932ecbb9718": "Flytta tillbaka till Aktiva",
+  "38c3ecc7c23d6f71": "Läser in äldre sessioner…",
+  "23b9f11186070d2e": "Försök läsa in äldre sessioner igen",
+  "7502641c4c22e83f": "Visa äldre sessioner"
 }

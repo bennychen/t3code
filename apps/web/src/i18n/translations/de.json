@@ -12975,5 +12975,18 @@
   "201490988858b511": "zurückgezogen von {by}",
   "99451a5d2d40440f": "Zurückgezogen von {by}.",
   "3ee30a50b70fffab": "Zurückgezogen von {by}: {reason}",
-  "92e129bf413a1220": "zurückgezogen"
+  "92e129bf413a1220": "zurückgezogen",
+  "c0e7ff45e3d9fe86": "Aktiv",
+  "3ef41ae7b123f1e9": "Arbeitet",
+  "c9c3151864a7a277": "Erledigt",
+  "13e6f2309e418404": "Erledigen",
+  "386e5eda914fc502": "Sitzungsboard",
+  "c5f33e42e5147620": "Verschiebe Sitzungen zwischen Aktiv und Erledigt. Laufende Agenten erscheinen unter Arbeitet.",
+  "0ff3944ea6166138": "Keine Sitzungen",
+  "b7c2e2d4a8591814": "{title} erledigen",
+  "aefe90ae1f7bd44e": "{title} zurück zu Aktiv verschieben",
+  "07d4a932ecbb9718": "Zurück zu Aktiv",
+  "38c3ecc7c23d6f71": "Ältere Sitzungen werden geladen…",
+  "23b9f11186070d2e": "Ältere Sitzungen erneut laden",
+  "7502641c4c22e83f": "Ältere Sitzungen anzeigen"
 }

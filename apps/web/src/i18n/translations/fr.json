@@ -12975,5 +12975,18 @@
   "201490988858b511": "retirée par {by}",
   "99451a5d2d40440f": "Retirée par {by}.",
   "3ee30a50b70fffab": "Retirée par {by} : {reason}",
-  "92e129bf413a1220": "retirée"
+  "92e129bf413a1220": "retirée",
+  "c0e7ff45e3d9fe86": "Actifs",
+  "3ef41ae7b123f1e9": "En cours",
+  "c9c3151864a7a277": "Clos",
+  "13e6f2309e418404": "Clore",
+  "386e5eda914fc502": "Tableau des sessions",
+  "c5f33e42e5147620": "Déplacez les sessions entre Actifs et Clos. La colonne En cours se met à jour pendant que les agents travaillent.",
+  "0ff3944ea6166138": "Aucune session",
+  "b7c2e2d4a8591814": "Clore {title}",
+  "aefe90ae1f7bd44e": "Remettre {title} dans Actifs",
+  "07d4a932ecbb9718": "Remettre dans Actifs",
+  "38c3ecc7c23d6f71": "Chargement des sessions plus anciennes…",
+  "23b9f11186070d2e": "Réessayer de charger les sessions",
+  "7502641c4c22e83f": "Afficher les sessions plus anciennes"
 }
