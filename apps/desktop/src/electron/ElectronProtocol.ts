@@ -11,6 +11,9 @@ import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
 
 import * as Electron from "electron";
+import * as HostProcess from "@t3tools/shared/HostProcess";
+
+import { makeCustomWindowsUpdateHandler } from "../updates/CustomWindowsUpdates.ts";
 
 export const DESKTOP_HOST = "app";
 const DESKTOP_PRODUCTION_SCHEME = "t3code";
@@ -244,6 +247,7 @@ const serveDesktopAsset = Effect.fn("desktop.protocol.serveAsset")(function* (
 /** @public */
 export const make = Effect.gen(function* () {
   const registered = yield* Ref.make(false);
+  const path = yield* Path.Path;
   const context = yield* Effect.context<FileSystem.FileSystem | Path.Path>();
   const runPromise = Effect.runPromiseWith(context);
 
@@ -252,11 +256,30 @@ export const make = Effect.gen(function* () {
       if (yield* Ref.get(registered)) return;
 
       const contentSecurityPolicy = makeDesktopContentSecurityPolicy(input);
+      const platform = yield* HostProcess.Platform;
+      const env = yield* HostProcess.Environment;
+      const localAppData = env.LOCALAPPDATA;
+      const customUpdates =
+        input.scheme === DESKTOP_PRODUCTION_SCHEME &&
+        platform === "win32" &&
+        process.resourcesPath &&
+        localAppData
+          ? makeCustomWindowsUpdateHandler({
+              resourcesPath: process.resourcesPath,
+              root: env.T3CODE_CUSTOM_UPDATES_ROOT ?? path.join(localAppData, "T3 Code Updates"),
+              executable: yield* HostProcess.ExecutablePath,
+              env,
+              currentVersion: Electron.app.getVersion(),
+              reveal: (path) => Electron.shell.showItemInFolder(path),
+            })
+          : undefined;
 
       yield* Effect.acquireRelease(
         Effect.try({
           try: () => {
             Electron.protocol.handle(input.scheme, async (request) => {
+              const updateResponse = await customUpdates?.(request);
+              if (updateResponse) return updateResponse;
               if ("assetDirectory" in input) {
                 return withContentSecurityPolicy(
                   await runPromise(serveDesktopAsset(request, input.assetDirectory)),

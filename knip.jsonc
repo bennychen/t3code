@@ -32,6 +32,9 @@
       "entry": [
         // These fixture scripts are injected into a browser page by path.
         "fixtures/*/*.js",
+        // The installed Windows app starts the updater and its staging helper by path.
+        "custom-updates/prepare-windows.mjs",
+        "custom-updates/stage-windows.mjs",
         "knip-schemas.ts",
         "linux-after-pack.ts",
         "mobile-behavior/run.ts",
