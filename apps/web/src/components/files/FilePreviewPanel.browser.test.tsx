@@ -5,6 +5,7 @@ import { StrictMode, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { cdp, userEvent } from "vite-plus/test/browser";
 import { act, fakeTimers, render } from "../../../test/render";
+import { useAssetUrlRefresh } from "~/assets/assetUrls";
 import appCss from "~/index.css?inline";
 import { isMacPlatform } from "~/lib/utils";
 import {
@@ -65,7 +66,7 @@ vi.mock(import("~/hooks/useWorkspaceMutationRefresh"), () => ({
 }));
 vi.mock(import("~/assets/assetUrls"), async (original) => ({
   ...(await original()),
-  useAssetUrlRefresh: () => state.mintUrl,
+  useAssetUrlRefresh: vi.fn(() => state.mintUrl),
   useAssetUrlState: (
     _environmentId: unknown,
     resource: import("@t3tools/contracts").AssetResource | null,
@@ -619,6 +620,50 @@ describe("rendered Markdown task saves", () => {
         contents: "- [x] Keep the rest of this file\n",
       },
     });
+  });
+});
+
+describe("workspace file downloads", () => {
+  it("downloads the original bytes of an ordinary Markdown file outside the workspace", async () => {
+    using _settings = setup();
+    vi.mocked(useAssetUrlRefresh).mockClear();
+    const path = "/tmp/t3-scratch/report-zh.md";
+    const contents = "# 摘要\r\n\r\nReview text.\r\n";
+    const original = new TextEncoder().encode(contents);
+    state.file = {
+      relativePath: path,
+      contents,
+      byteLength: original.byteLength,
+      truncated: false,
+    };
+    const sourceUrl = URL.createObjectURL(new Blob([original]));
+    state.mintUrl.mockResolvedValue(sourceUrl);
+    const download = vi.fn<(name: string, url: string) => void>();
+
+    try {
+      await using screen = await render(filePreview(path));
+      using _click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+        this: HTMLAnchorElement,
+      ) {
+        download(this.download, this.href);
+      });
+
+      await screen.getByRole("button", { name: "Save file" }).click();
+      await vi.waitFor(() => expect(download).toHaveBeenCalledOnce());
+      expect(state.mintUrl).toHaveBeenCalledOnce();
+      expect(useAssetUrlRefresh).toHaveBeenCalledWith(environmentId, {
+        _tag: "media-file",
+        threadId: threadRef.threadId,
+        path,
+        disposition: "attachment",
+      });
+      const [name, url] = download.mock.calls[0]!;
+      expect(name).toBe("report-zh.md");
+      expect(new Uint8Array(await (await fetch(url)).arrayBuffer())).toEqual(original);
+    } finally {
+      URL.revokeObjectURL(sourceUrl);
+      for (const [, url] of download.mock.calls) URL.revokeObjectURL(url);
+    }
   });
 });
 
