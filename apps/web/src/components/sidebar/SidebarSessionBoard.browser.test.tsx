@@ -99,8 +99,8 @@ describe("SidebarSessionBoard", () => {
     const settledBounds = settled.element().getBoundingClientRect();
     expect(workingBounds.top).toBe(activeBounds.top);
     expect(settledBounds.top).toBe(activeBounds.top);
-    expect(workingBounds.left).toBeGreaterThan(activeBounds.right);
-    expect(settledBounds.left).toBeGreaterThan(workingBounds.right);
+    expect(activeBounds.left).toBeGreaterThan(workingBounds.right);
+    expect(settledBounds.left).toBeGreaterThan(activeBounds.right);
     await expect
       .element(working.getByRole("button", { name: "Settle Run verification" }))
       .not.toBeInTheDocument();
@@ -129,6 +129,31 @@ describe("SidebarSessionBoard", () => {
     await userEvent.keyboard("{Escape}");
     await expect.element(board).not.toBeInTheDocument();
     await expect.element(opener).toHaveFocus();
+  });
+
+  it("highlights the entire card from the title or action area", async () => {
+    await using screen = await render(
+      <BoardFixture onOpenSession={vi.fn()} onMoveSession={vi.fn()} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Open session board" }));
+    const active = page.getByRole("region", { name: "Active" });
+    const title = active.getByRole("button", { name: "Review API design" });
+    await expect.element(title).toBeVisible();
+    const titleButton = title.element();
+    const card = titleButton.closest("li")!;
+    const actionArea = card.lastElementChild!;
+    const background = () => getComputedStyle(card).backgroundColor;
+    const idle = background();
+
+    await userEvent.hover(title);
+    await vi.waitFor(() => expect(background()).not.toBe(idle));
+    expect(getComputedStyle(titleButton).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+
+    await userEvent.hover(actionArea);
+    expect(card.matches(":hover")).toBe(true);
+    expect(background()).not.toBe(idle);
+    expect(getComputedStyle(actionArea).backgroundColor).toBe("rgba(0, 0, 0, 0)");
   });
 
   it("accepts a session drop in Settled while Working stays tied to actual runs", async () => {

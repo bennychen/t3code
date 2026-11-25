@@ -63,16 +63,16 @@ export function SidebarSessionBoard({
 
   const lanes = [
     {
-      status: "active",
-      name: gt("Active", { $context: "session board column" }),
-      icon: CircleDotIcon,
-      tone: "text-muted-foreground",
-    },
-    {
       status: "working",
       name: gt("Working", { $context: "session board column" }),
       icon: LoaderCircleIcon,
       tone: "text-info-foreground",
+    },
+    {
+      status: "active",
+      name: gt("Active", { $context: "session board column" }),
+      icon: CircleDotIcon,
+      tone: "text-muted-foreground",
     },
     {
       status: "settled",
@@ -155,7 +155,7 @@ export function SidebarSessionBoard({
                           <li
                             key={card.id}
                             className={cn(
-                              "min-w-0 rounded-lg border border-border/75 bg-popover shadow-xs transition-colors hover:border-border focus-within:border-ring/60",
+                              "min-w-0 rounded-lg border border-border/75 bg-popover shadow-xs transition-colors hover:border-border hover:bg-accent/55 focus-within:border-ring/60 focus-within:bg-accent/55 has-[>button:focus-visible]:ring-2 has-[>button:focus-visible]:ring-inset has-[>button:focus-visible]:ring-ring",
                               draggedCardId === card.id && "opacity-50",
                             )}
                             draggable={destination !== null}
@@ -171,7 +171,7 @@ export function SidebarSessionBoard({
                               type="button"
                               aria-label={card.title}
                               aria-describedby={context.length > 0 ? contextId : undefined}
-                              className="block w-full rounded-t-lg p-3 text-start outline-none hover:bg-accent/55 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                              className="block w-full p-3 text-start outline-none"
                               onClick={() => onOpenSession(card.id)}
                             >
                               <span className="block text-sm leading-snug font-medium wrap-anywhere">
