@@ -9,7 +9,7 @@ import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime
 import { isElectron } from "../../env";
 import { m } from "../../i18n/messages";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { cn } from "../../lib/utils";
+import { cn, isWindowsPlatform } from "../../lib/utils";
 import { ensureLocalApi } from "../../localApi";
 import { useDesktopUpdateState } from "../../state/desktopUpdate";
 import { usePrimaryManagedPolicy } from "../../state/managedPolicy";
@@ -34,6 +34,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Popover, PopoverCreateHandle, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import { SidebarMenuItem } from "../ui/sidebar";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import { CustomDesktopUpdatePill } from "./CustomDesktopUpdatePill";
 import {
   DesktopUpdateStatusIcon,
   type DesktopUpdateStatusIconState,
@@ -198,6 +199,13 @@ export async function installLocalUpdate(
 }
 
 export function SidebarUpdatePill() {
+  if (
+    isElectron &&
+    isWindowsPlatform(navigator.platform) &&
+    import.meta.env.T3CODE_DESKTOP_UPDATE_REPOSITORY === "bennychen/t3code"
+  ) {
+    return <CustomDesktopUpdatePill />;
+  }
   return <SidebarUpdateControl />;
 }
 
